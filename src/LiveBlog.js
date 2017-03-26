@@ -1,14 +1,13 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import request from 'superagent';
 import Post from './Post.js';
-import './App.css';
 
-class App extends Component {
+class LiveBlog extends Component {
   constructor(props) {
     super(props);
     this.state = {
       posts: [],
-      postsVisible: this.props.defaultPostsVisible
+      postsVisible: this.props.numToLoad
     };
   }
 
@@ -40,16 +39,17 @@ class App extends Component {
 
   loadMore() {
     this.setState({ 
-      postsVisible: this.state.postsVisible + this.props.defaultPostsVisible
+      postsVisible: this.state.postsVisible + this.props.numToLoad
     });
   }
 
   render() {
     const posts = this.state.posts
+    // hide unpublished posts
     .filter(post => {
       return post.published;
     })
-    // we will use the row's position in the sheet as the react `key`
+    // we'll use the object's position in the initial array as the react `key`
     .map((post, index) => {
       post.index = index;
       return post;
@@ -58,6 +58,7 @@ class App extends Component {
     .sort((a, b) => {
       return a.time < b.time;
     })
+    // show only the posts that should be visible now
     .slice(0, this.state.postsVisible)
     .map(post => {
       return <Post key={post.index} {...post} />
@@ -71,7 +72,7 @@ class App extends Component {
     }
 
     return (
-      <section className="live-blog">
+      <section className={this.props.className}>
         {posts}
         {loadMoreButton}
       </section>
@@ -80,17 +81,19 @@ class App extends Component {
 }
 
 App.propTypes = {
-  url: React.PropTypes.string.isRequired,
-  defaultPostsVisible: React.PropTypes.number.isRequired,
-  refreshInterval: React.PropTypes.number.isRequired,
-  loadMoreButtonText: React.PropTypes.string.isRequired
+  url: PropTypes.string.isRequired,
+  numToLoad: PropTypes.number.isRequired,
+  refreshInterval: PropTypes.number.isRequired,
+  loadMoreButtonText: PropTypes.string.isRequired,
+  className: PropTypes.string.isRequired
 };
 
 App.defaultProps = {
   url: 'https://google-sheets-test.s3.amazonaws.com/data/19loh8WQudFyClZORX_nNzDvI4iVewVy9v70zdog83Uc',
-  defaultPostsVisible: 10,
+  numToLoad: 10,
   refreshInterval: 30,
-  loadMoreButtonText: 'Load More'
+  loadMoreButtonText: 'Load More',
+  className: 'live-blog'
 }
 
-export default App;
+export default LiveBlog;
